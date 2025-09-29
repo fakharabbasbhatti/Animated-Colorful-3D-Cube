@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Animated Colorful 3D Cube</title>
+  <!-- Html Favicon -->
+  <link rel="icon" type="image/x-icon" href="https://media.istockphoto.com/id/1043738742/photo/3d-render-lightning-electric-power-symbol-retro-neon-glowing-sign-isolated-on-black.webp?a=1&b=1&s=612x612&w=0&k=20&c=egXDGL3dtZC8lvH3PolMJfFKc2iwNkGY5I4hlHqkLas=">
+   <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+  <style>
+    body{
+      min-height:100vh;
+      display:flex;align-items:center;justify-content:center;
+      background:radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+      color:#f8fafc;
+      overflow:hidden;
+      font-family: 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .bg-decor::before,
+    .bg-decor::after{
+      content:"";position:absolute;border-radius:50%;filter:blur(120px);z-index:-1;}
+    .bg-decor::before{top:-25%;left:-25%;width:500px;height:500px;background:#3b82f6;opacity:0.35;animation: pulseColor1 10s infinite alternate;}
+    .bg-decor::after{bottom:-25%;right:-25%;width:500px;height:500px;background:#ec4899;opacity:0.35;animation: pulseColor2 10s infinite alternate;}
+
+    @keyframes pulseColor1{
+      0%{background:#3b82f6;}
+      100%{background:#06b6d4;}
+    }
+    @keyframes pulseColor2{
+      0%{background:#ec4899;}
+      100%{background:#f59e0b;}
+    }
+
+    .cube-stage{perspective:1200px;width:100%;height:360px;}
+    .cube-scene{width:100%;height:100%;position:relative;transform-style:preserve-3d;}
+
+    .cube{
+      width:200px;height:200px;
+      position:absolute;left:50%;top:50%;
+      transform-style:preserve-3d;
+      transform:translate(-50%,-50%) rotateX(-20deg) rotateY(-25deg);
+      transition:transform 0.2s linear;
+      margin:auto;
+    }
+
+    .cube-face{
+      position:absolute;width:200px;height:200px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:22px;font-weight:600;color:#fff;
+      border-radius:12px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.6);
+      backdrop-filter:blur(8px);
+      animation: colorful 8s infinite alternate ease-in-out;
+    }
+
+    @keyframes colorful{
+      0% {filter:hue-rotate(0deg);}
+      100% {filter:hue-rotate(360deg);}
+    }
+
+    .front {background:linear-gradient(135deg,#06b6d4,#2563eb); transform:translateZ(100px);}
+    .back {background:linear-gradient(135deg,#f43f5e,#be123c); transform:rotateY(180deg) translateZ(100px);}
+    .right {background:linear-gradient(135deg,#facc15,#ca8a04); transform:rotateY(90deg) translateZ(100px);}
+    .left {background:linear-gradient(135deg,#22c55e,#15803d); transform:rotateY(-90deg) translateZ(100px);}
+    .top {background:linear-gradient(135deg,#a855f7,#6b21a8); transform:rotateX(90deg) translateZ(100px);}
+    .bottom {background:linear-gradient(135deg,#f97316,#9a3412); transform:rotateX(-90deg) translateZ(100px);}
+
+    .controls button{
+      min-width:120px;
+    }
+
+    @media(max-width:576px){
+      .cube{width:150px;height:150px;}
+      .cube-face{width:150px;height:150px;font-size:16px;}
+      .cube-stage{height:280px;}
+    }
+  </style>
+</head>
+<body class="bg-decor">
+  <div class="container text-center">
+    <h1 class="mb-4 text-light fw-bold">
+      <i class="fa-solid fa-cube me-2"></i>Animated Colorful 3D Cube
+    </h1>
+
+    <div class="cube-stage mx-auto" id="stage">
+      <div class="cube-scene" id="scene">
+        <div class="cube" id="cube">
+          <div class="cube-face front"><i class="fa-solid fa-house"></i></div>
+          <div class="cube-face back"><i class="fa-solid fa-star"></i></div>
+          <div class="cube-face right"><i class="fa-solid fa-gear"></i></div>
+          <div class="cube-face left"><i class="fa-solid fa-heart"></i></div>
+          <div class="cube-face top"><i class="fa-solid fa-sun"></i></div>
+          <div class="cube-face bottom"><i class="fa-solid fa-moon"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls d-flex justify-content-center gap-3 mt-4">
+      <button class="btn btn-primary" id="auto"><i class="fa-solid fa-play me-1"></i>Auto: On</button>
+      <button class="btn btn-secondary" id="reset"><i class="fa-solid fa-rotate-left me-1"></i>Reset</button>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const stage = document.getElementById('stage');
+      const cube = document.getElementById('cube');
+      const autoBtn = document.getElementById('auto');
+      const resetBtn = document.getElementById('reset');
+
+      let dragging = false;
+      let lastX = 0, lastY = 0;
+      let rotX = -20, rotY = -25;
+      let autoRotate = true;
+      let autoId = null;
+
+      function applyRotation(){
+        cube.style.transform = `translate(-50%,-50%) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+      }
+
+      function startAuto(){
+        if(autoId) cancelAnimationFrame(autoId);
+        function tick(){
+          rotY += 0.5;
+          applyRotation();
+          autoId = requestAnimationFrame(tick);
+        }
+        autoId = requestAnimationFrame(tick);
+      }
+
+      function stopAuto(){
+        if(autoId) cancelAnimationFrame(autoId);
+        autoId = null;
+      }
+
+      stage.addEventListener('pointerdown', e => {
+        dragging = true;
+        lastX = e.clientX; lastY = e.clientY;
+        stage.setPointerCapture(e.pointerId);
+        stopAuto();
+      });
+
+      stage.addEventListener('pointermove', e => {
+        if(!dragging) return;
+        const dx = e.clientX - lastX;
+        const dy = e.clientY - lastY;
+        lastX = e.clientX; lastY = e.clientY;
+        rotY += dx * 0.4;
+        rotX -= dy * 0.4;
+        rotX = Math.max(-85, Math.min(85, rotX));
+        applyRotation();
+      });
+
+      stage.addEventListener('pointerup', () => {
+        dragging = false;
+        if(autoRotate) startAuto();
+      });
+
+      autoBtn.addEventListener('click', ()=>{
+        autoRotate = !autoRotate;
+        autoBtn.innerHTML = `<i class='fa-solid ${autoRotate? 'fa-play':'fa-pause'} me-1'></i>Auto: ${autoRotate? 'On':'Off'}`;
+        if(autoRotate) startAuto(); else stopAuto();
+      });
+
+      resetBtn.addEventListener('click', ()=>{
+        rotX = -20; rotY = -25; applyRotation();
+      });
+
+      applyRotation();
+      if(autoRotate) startAuto();
+    })();
+  </script>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
